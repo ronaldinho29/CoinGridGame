@@ -3,13 +3,10 @@ in apps!
 
 ## General Requirements
 
-You must implement the project in Swift, using SwiftUI for the View.
-You *may not* use external libraries or frameworks without prior
-approval. Firebase is an approved framework. If you wish to use
-functionality from UIKit or other built-in frameworks, you may, but
-the bulk of your interface must still be in SwiftUI. In particular, for
-UIKit, you should limit yourselves to the *bare minimum* functionality
-needed. When in doubt, ask.
+You must implement the project in Dart, using Flutter.  You may use
+external libraries from `pub.dev`, but you must list these in your
+documents (proposal, milestones, and final report, as appropriate),
+along with the reason you need them.
 
 Your project must go beyond the topics we covered in class in some
 significant way, and must somehow take advantage of features of a
@@ -24,7 +21,7 @@ You will need to submit the following things:
  3. Milestone 2
  4. Milestone 3
  5. Final project, which must include
-    * a working Xcode project
+    * a working Flutter project
     * a 5-10 page report
     * a short (about 5 minutes) demonstration video
 
@@ -34,7 +31,7 @@ See below for details about these.
 
 Your project will be a series of commits, starting with a project proposal.
 This proposal can be in markdown, plain text, or PDF, and should have an
-obvious name. In addition, you should include an Xcode project, as with the
+obvious name. In addition, you should include a Flutter project, as with the
 solo projects.
 
 We will discuss your proposal with you, so that it is appropriately scoped
@@ -44,7 +41,8 @@ submissions before the final submission.
 
 The final submission must include the following:
 
- * an Xcode project that builds and runs on the iPhone 12 simulator
+ * a Flutter project that builds and runs on either an iPhone or
+   Android platform
  * a 5-10 page (roughtly 2500 to 5000 words) report describing not just your
    app, but your design process, and how your ideas evolved over the course
    of the project
@@ -59,7 +57,8 @@ Your proposal should have the following format:
  * List of team members
  * General description of the app
  * Minimal Goals -- these are things your app *must* do
- * Stretch Goals -- these are additional functionality that might earn extra points
+ * Stretch Goals -- these are additional functionality that might earn
+   extra points
  * Project timeline, including development milestones
 
 We have provided a sample proposal on ELMS that corresponds to the in-class
