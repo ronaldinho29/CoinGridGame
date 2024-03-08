@@ -59,7 +59,7 @@ class MainMenu extends StatelessWidget {
         future: getProfileNames(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return CircularProgressIndicator(); // Add a loading indicator
+            return CircularProgressIndicator();
           } else if (snapshot.hasError) {
             return Text('Error: ${snapshot.error}');
           } else {
