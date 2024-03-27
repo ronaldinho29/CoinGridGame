@@ -101,17 +101,27 @@ class MainMenu extends StatelessWidget {
   }
 }
 
-class StartGame extends StatelessWidget {
+
+class StartGame extends StatefulWidget {
   final String profileName;
 
   StartGame({required this.profileName});
+
+  @override
+  _StartGameState createState() => _StartGameState();
+}
+
+class _StartGameState extends State<StartGame> {
+  List<bool> _isTitleVisible = List.generate(30, (index) => true);
+  List<bool> _isBorderVisible = List.generate(30, (index) => true);
+  List<bool> _isTileEnabled = List.generate(30, (index) => true);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "Game - $profileName",
+          "Game - ${widget.profileName}",
           style: TextStyle(fontSize: 30),
         ),
         backgroundColor: Colors.blue,
@@ -120,12 +130,43 @@ class StartGame extends StatelessWidget {
       body: GridView.count(
         crossAxisCount: 5, // Changed to 5x6 grid
         children: List.generate(30, (index) {
-          return Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.black), // Add black borders
-            ),
-            child: Card(
-              color: Colors.green, // Keep the card green
+          return GestureDetector(
+            onTap: () {
+              if (_isTileEnabled[index]) {
+                setState(() {
+                  if (_isTitleVisible[index]) {
+                    _isTitleVisible[index] = false;
+                  } else {
+                    _isBorderVisible[index] = !_isBorderVisible[index];
+                  }
+                  _isTileEnabled[index] = false; // Disable the tile
+                });
+              }
+            },
+            child: Stack(
+              children: [
+                Visibility(
+                  visible: _isBorderVisible[index],
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.black), // Add black borders
+                    ),
+                  ),
+                ),
+                Visibility(
+                  visible: _isTitleVisible[index],
+                  child: Center(
+                    child: Container(
+                      width: 70, // Adjust the width of the green tile
+                      height: 70, // Adjust the height of the green tile
+                      decoration: BoxDecoration(
+                        color: Colors.green, // Green color tile
+                        borderRadius: BorderRadius.circular(5), // Rounded edges
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           );
         }),
