@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mongo_dart/mongo_dart.dart' as mongo;
 
+
 void main() {
   runApp(const MyApp());
 }
@@ -115,6 +116,19 @@ class StartGame extends StatelessWidget {
         ),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
+      ),
+      body: GridView.count(
+        crossAxisCount: 5, // Changed to 5x6 grid
+        children: List.generate(30, (index) {
+          return Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.black), // Add black borders
+            ),
+            child: Card(
+              color: Colors.green, // Keep the card green
+            ),
+          );
+        }),
       ),
     );
   }
