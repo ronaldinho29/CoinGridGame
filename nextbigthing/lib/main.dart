@@ -141,10 +141,12 @@ class StartGame extends StatelessWidget {
                             border: Border.all(color: Colors.black),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: game.isTileClicked[index] &&
-                                  index == game.tileWithRedX
-                              ? Icon(Icons.whatshot,
-                                  size: 70, color: Colors.red)
+                          child: game.isTileClicked[index]
+                              ? index == game.tileWithRedX
+                                  ? Icon(Icons.whatshot,
+                                      size: 70, color: Colors.red)
+                                  : Icon(Icons.monetization_on,
+                                      size: 70, color: Colors.yellow)
                               : Container(),
                         ),
                       ],
