@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mongo_dart/mongo_dart.dart' as mongo;
+import 'package:nextbigthing/Game.dart';
 import 'dart:math';
+import 'package:provider/provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -101,107 +103,103 @@ class MainMenu extends StatelessWidget {
   }
 }
 
-class StartGame extends StatefulWidget {
+class StartGame extends StatelessWidget {
   final String profileName;
 
   StartGame({required this.profileName});
 
   @override
-  _StartGameState createState() => _StartGameState();
-}
-
-class _StartGameState extends State<StartGame> {
-  final int _numberOfTiles = 30;
-  late int _tileWithRedX;
-  List<bool> _isTileClicked;
-  List<bool> _isBorderVisible = List.generate(30, (index) => true);
-
-  _StartGameState() : _isTileClicked = List.generate(30, (index) => false) {
-    // Randomly assign one tile to contain a red X mark
-    _tileWithRedX = Random().nextInt(30);
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          "Game - ${widget.profileName}",
-          style: TextStyle(fontSize: 30),
+    return ChangeNotifierProvider(
+      create: (context) => Game(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text("Game - $profileName"),
+          backgroundColor: Colors.blue,
+          foregroundColor: Colors.white,
         ),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-      ),
-      body: Column(
-        children: [
-          GridView.count(
-            crossAxisCount: 5,
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            children: List.generate(_numberOfTiles, (index) {
-              return GestureDetector(
-                onTap: () {
-                  if (!_isTileClicked[index]) {
-                    setState(() {
-                      _isTileClicked[index] = true; // Mark tile as clicked
-                    });
-                  }
-                },
-                child: Stack(
-                  children: [
-                    Visibility(
-                      visible: _isBorderVisible[index],
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.black),
-                        ),
-                      ),
-                    ),
-                    Visibility(
-                      visible: !_isTileClicked[index],
-                      child: Center(
-                        child: Container(
-                          width: 70,
-                          height: 70,
-                          decoration: BoxDecoration(
-                            color: Colors.green,
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                        ),
-                      ),
-                    ),
-                    // Conditionally show the red X mark if this tile is the one and has been clicked
-                    if (_isTileClicked[index] && index == _tileWithRedX)
-                      Center(
-                        child:
-                            Icon(Icons.whatshot, size: 70, color: Colors.red),
-                      ),
-                  ],
+        body: Consumer<Game>(
+          builder: (context, game, child) => Column(
+            children: [
+              GridView.builder(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 5,
                 ),
-              );
-            }),
-          ),
-          Align(
-            alignment: Alignment.center,
-            child: Container(
-              margin: EdgeInsets.all(
-                  2.0), // Adds margin around the wallet container
-              padding: EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.black),
-                borderRadius: BorderRadius.circular(5),
+                itemCount: game.numberOfTiles,
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemBuilder: (context, index) {
+                  return GestureDetector(
+                    onTap: () => game.tapTile(index),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            color:
+                                game.isTileClicked[index] ? null : Colors.green,
+                            border: Border.all(color: Colors.black),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: game.isTileClicked[index] &&
+                                  index == game.tileWithRedX
+                              ? Icon(Icons.whatshot,
+                                  size: 70, color: Colors.red)
+                              : Container(),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+              Align(
+                alignment: Alignment.center,
+                child: Container(
+                  margin: EdgeInsets.all(2.0),
+                  padding: EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.black),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('\$1000.00', style: TextStyle(fontSize: 20)),
+                      SizedBox(width: 10),
+                      Icon(Icons.add_card, color: Colors.blue),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: 10),
+              if (game.gameOver)
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(game.userWon ? "You Win!" : "You Lost!",
+                      style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: game.userWon ? Colors.green : Colors.red)),
+                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('\$1000.00', style: TextStyle(fontSize: 20)),
-                  SizedBox(width: 10),
-                  Icon(Icons.add_card, color: Colors.blue),
+                  ElevatedButton(
+                    onPressed: game.gameStarted || game.gameOver
+                        ? null
+                        : () => game.startGame(),
+                    child: Text("Play"),
+                  ),
+                  SizedBox(width: 20),
+                  ElevatedButton(
+                    onPressed: () => game.resetGame(),
+                    child: Text("Reset"),
+                  ),
                 ],
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

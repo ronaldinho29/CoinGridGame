@@ -32,6 +32,7 @@ dependencies:
     sdk: flutter
   mongo_dart: ^0.10.0
   animated_flip_card: ^1.0.2
+  provider: ^6.1.2
 
 
   # The following adds the Cupertino Icons font to your application.
