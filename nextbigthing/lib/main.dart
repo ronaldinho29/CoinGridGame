@@ -3,6 +3,7 @@ import 'package:mongo_dart/mongo_dart.dart' as mongo;
 import 'package:nextbigthing/Game.dart';
 import 'dart:math';
 import 'package:provider/provider.dart';
+import 'package:flutter/services.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,6 +14,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     return MaterialApp(
       title: 'Mine Game',
       theme: ThemeData(
