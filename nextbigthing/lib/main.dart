@@ -4,6 +4,7 @@ import 'package:nextbigthing/Game.dart';
 import 'dart:math';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
+import 'package:bson/bson.dart';
 
 void main() {
   runApp(const MyApp());
@@ -29,7 +30,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-Future<List<String>> getProfileNames() async {
+Future<List<Map<String, dynamic>>> getProfiles() async {
   final db = await mongo.Db.create(
       'mongodb+srv://ronaldchomnou:Ronaldinho2910@cluster0.39ac5k2.mongodb.net/nextbigthing?retryWrites=true&w=majority&appName=Cluster0');
   await db.open();
@@ -39,7 +40,14 @@ Future<List<String>> getProfileNames() async {
 
   db.close();
 
-  return profiles.map((profile) => profile['name'] as String).toList();
+  return profiles.map((profile) {
+    // Directly convert Int64 to int without additional checks
+    int wallet = (profile['wallet']).toInt();
+    return {
+      'name': profile['name'] as String,
+      'wallet': wallet,
+    };
+  }).toList();
 }
 
 class Mine extends StatelessWidget {
@@ -64,54 +72,49 @@ class MainMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text("Select Profile"),
-        ),
-        body: FutureBuilder<List<String>>(
-          future: getProfileNames(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            } else if (snapshot.hasError) {
-              return Text('Error: ${snapshot.error}');
-            } else {
-              List<String> names = snapshot.data ?? [];
-              return Column(
-                children: [
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: names.length,
-                      itemBuilder: (context, index) {
-                        return ListTile(
-                          leading: Icon(Icons.person),
-                          title: Text(names[index]),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    StartGame(profileName: names[index]),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              );
-            }
-          },
-        ));
+      appBar: AppBar(
+        title: Text("Select Profile"),
+      ),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: getProfiles(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}');
+          } else {
+            List<Map<String, dynamic>> profiles = snapshot.data ?? [];
+            return ListView.builder(
+              itemCount: profiles.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  leading: Icon(Icons.person),
+                  title: Text(profiles[index]['name']),
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => StartGame(
+                            profileName: profiles[index]['name'],
+                            userWallet: profiles[index]['wallet'],
+                          ),
+                        ));
+                  },
+                );
+              },
+            );
+          }
+        },
+      ),
+    );
   }
 }
 
 class StartGame extends StatefulWidget {
   final String profileName;
+  int userWallet;
 
-  StartGame({required this.profileName});
+  StartGame({required this.profileName, required this.userWallet});
 
   @override
   _StartGameState createState() => _StartGameState();
@@ -123,7 +126,8 @@ class _StartGameState extends State<StartGame> {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => Game(selectedMines), // Pass the initial number of mines here
+      create: (context) =>
+          Game(selectedMines), // Pass the initial number of mines here
       child: Scaffold(
         appBar: AppBar(
           title: Text("Game - ${widget.profileName}"),
@@ -148,14 +152,18 @@ class _StartGameState extends State<StartGame> {
                       children: [
                         Container(
                           decoration: BoxDecoration(
-                            color: game.isTileClicked[index] ? null : Colors.green,
+                            color:
+                                game.isTileClicked[index] ? null : Colors.green,
                             border: Border.all(color: Colors.black),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: game.isTileClicked[index]
-                              ? game.tilesWithMines[index] // Checking if there's a mine
-                                ? Icon(Icons.whatshot, size: 70, color: Colors.red)
-                                : Icon(Icons.monetization_on, size: 70, color: Colors.yellow)
+                              ? game.tilesWithMines[
+                                      index] // Checking if there's a mine
+                                  ? Icon(Icons.whatshot,
+                                      size: 70, color: Colors.red)
+                                  : Icon(Icons.monetization_on,
+                                      size: 70, color: Colors.yellow)
                               : Container(),
                         ),
                       ],
@@ -175,7 +183,19 @@ class _StartGameState extends State<StartGame> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('\$1000.00', style: TextStyle(fontSize: 20)),
+                      FutureBuilder<String>(
+                        future: game.currentWalletFuture(widget.profileName),
+                        builder: (BuildContext context,
+                            AsyncSnapshot<String> snapshot) {
+                          if (snapshot.data == null) {
+                            return Text('Wallet: ',
+                                style: TextStyle(fontSize: 20));
+                          } else {
+                            return Text('Wallet: \$${snapshot.data}',
+                                style: TextStyle(fontSize: 20));
+                          }
+                        },
+                      ),
                       SizedBox(width: 10),
                       Icon(Icons.add_card, color: Colors.blue),
                     ],
@@ -199,16 +219,20 @@ class _StartGameState extends State<StartGame> {
                     onPressed: game.gameStarted || game.gameOver
                         ? null
                         : () {
-                          game.startGame();
-                          setState(() {}); // Update UI to reflect the game has started
-                        },
+                            game.startGame();
+                            setState(() {});
+                          },
                     child: Text("Play"),
                   ),
                   SizedBox(width: 20),
                   ElevatedButton(
                     onPressed: () {
+                      if (game.gameOver) {
+                        print("GAME IS OFFICIALLY OVER");
+                        game.endGame(widget.profileName, selectedMines);
+                      }
                       game.resetGame();
-                      setState(() {}); // Update UI to reflect the reset state
+                      setState(() {});
                     },
                     child: Text("Reset"),
                   ),
@@ -217,14 +241,16 @@ class _StartGameState extends State<StartGame> {
                   SizedBox(width: 20),
                   DropdownButton<int>(
                     value: selectedMines,
-                    onChanged: game.gameStarted ? null : (int? newValue) {
-                      if (newValue != null) {
-                        setState(() {
-                          selectedMines = newValue;
-                        });
-                        game.updateMines(selectedMines); // You need to implement this method in your Game class
-                      }
-                    },
+                    onChanged: game.gameStarted
+                        ? null
+                        : (int? newValue) {
+                            if (newValue != null) {
+                              setState(() {
+                                selectedMines = newValue;
+                              });
+                              game.updateMines(selectedMines);
+                            }
+                          },
                     items: List.generate(29, (index) => index + 1)
                         .map<DropdownMenuItem<int>>((int value) {
                       return DropdownMenuItem<int>(
