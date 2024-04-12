@@ -127,7 +127,7 @@ class _StartGameState extends State<StartGame> {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) =>
-          Game(selectedMines), // Pass the initial number of mines here
+          Game(context,selectedMines), // Pass the initial number of mines here
       child: Scaffold(
         appBar: AppBar(
           title: Text("Game - ${widget.profileName}"),

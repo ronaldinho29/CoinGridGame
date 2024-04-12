@@ -2,8 +2,10 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:mongo_dart/mongo_dart.dart' as mongo;
+import 'package:flutter/material.dart'; // Import the material package for using dialogs
 
 class Game extends ChangeNotifier {
+  final BuildContext context; // Add a context field
   final int numberOfTiles = 30;
   int numberOfMines;
   List<bool> tilesWithMines;
@@ -11,10 +13,11 @@ class Game extends ChangeNotifier {
   bool gameOver = false;
   bool gameStarted = false;
   bool userWon = false;
+  bool redemptionWon = false; 
   String databaseUri =
       'mongodb+srv://ronaldchomnou:Ronaldinho2910@cluster0.39ac5k2.mongodb.net/nextbigthing?retryWrites=true&w=majority&appName=Cluster0';
 
-  Game(this.numberOfMines)
+  Game(this.context, this.numberOfMines)
       : tilesWithMines = List<bool>.filled(30, false),
         isTileClicked = List<bool>.filled(30, false) {
     _placeMines();
@@ -58,6 +61,7 @@ class Game extends ChangeNotifier {
       gameOver = true;
       userWon = false;
       gameStarted = false;
+      _showMineHitDialog(); // Show the dialog when a mine is hit
       // Directly trigger endGame without waiting for an external call
     } else {
       int remainingSafeTiles = 0;
@@ -133,4 +137,32 @@ class Game extends ChangeNotifier {
       await db.close();
     }
   }
+
+ void _showMineHitDialog() async {
+  await showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Center(child: Text("Mine Hit!")), // Center the title
+        content: Text("Do you want to play a redemption game?"),
+        actions: <Widget>[
+          TextButton(
+            child: Text("Yes"),
+            onPressed: () {
+              resetGame();
+              Navigator.of(context).pop();
+            },
+          ),
+          TextButton(
+            child: Text("No"),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
 }
