@@ -108,18 +108,25 @@ class MainMenu extends StatelessWidget {
   }
 }
 
-class StartGame extends StatelessWidget {
+class StartGame extends StatefulWidget {
   final String profileName;
 
   StartGame({required this.profileName});
 
   @override
+  _StartGameState createState() => _StartGameState();
+}
+
+class _StartGameState extends State<StartGame> {
+  int selectedMines = 1; // Default number of mines
+
+  @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => Game(),
+      create: (context) => Game(selectedMines), // Pass the initial number of mines here
       child: Scaffold(
         appBar: AppBar(
-          title: Text("Game - $profileName"),
+          title: Text("Game - ${widget.profileName}"),
           backgroundColor: Colors.blue,
           foregroundColor: Colors.white,
         ),
@@ -141,17 +148,14 @@ class StartGame extends StatelessWidget {
                       children: [
                         Container(
                           decoration: BoxDecoration(
-                            color:
-                                game.isTileClicked[index] ? null : Colors.green,
+                            color: game.isTileClicked[index] ? null : Colors.green,
                             border: Border.all(color: Colors.black),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: game.isTileClicked[index]
-                              ? index == game.tileWithRedX
-                                  ? Icon(Icons.whatshot,
-                                      size: 70, color: Colors.red)
-                                  : Icon(Icons.monetization_on,
-                                      size: 70, color: Colors.yellow)
+                              ? game.tilesWithMines[index] // Checking if there's a mine
+                                ? Icon(Icons.whatshot, size: 70, color: Colors.red)
+                                : Icon(Icons.monetization_on, size: 70, color: Colors.yellow)
                               : Container(),
                         ),
                       ],
@@ -194,13 +198,40 @@ class StartGame extends StatelessWidget {
                   ElevatedButton(
                     onPressed: game.gameStarted || game.gameOver
                         ? null
-                        : () => game.startGame(),
+                        : () {
+                          game.startGame();
+                          setState(() {}); // Update UI to reflect the game has started
+                        },
                     child: Text("Play"),
                   ),
                   SizedBox(width: 20),
                   ElevatedButton(
-                    onPressed: () => game.resetGame(),
+                    onPressed: () {
+                      game.resetGame();
+                      setState(() {}); // Update UI to reflect the reset state
+                    },
                     child: Text("Reset"),
+                  ),
+                  SizedBox(width: 20),
+                  Text("Mines:"),
+                  SizedBox(width: 20),
+                  DropdownButton<int>(
+                    value: selectedMines,
+                    onChanged: game.gameStarted ? null : (int? newValue) {
+                      if (newValue != null) {
+                        setState(() {
+                          selectedMines = newValue;
+                        });
+                        game.updateMines(selectedMines); // You need to implement this method in your Game class
+                      }
+                    },
+                    items: List.generate(29, (index) => index + 1)
+                        .map<DropdownMenuItem<int>>((int value) {
+                      return DropdownMenuItem<int>(
+                        value: value,
+                        child: Text(value.toString()),
+                      );
+                    }).toList(),
                   ),
                 ],
               ),
