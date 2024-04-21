@@ -139,7 +139,7 @@ class Game extends ChangeNotifier {
     }
   }
 
-  void _showMineHitDialog() async {
+ void _showMineHitDialog() async {
     await showDialog(
       context: context,
       barrierDismissible: false,
@@ -167,6 +167,8 @@ class Game extends ChangeNotifier {
     );
   }
 
+
+
   final List<Map<String, String>> questionsAndAnswers = [
     {'question': 'What is 5 + 5?', 'answer': '10'},
     {'question': 'What is the capital of France?', 'answer': 'Paris'},
@@ -193,27 +195,31 @@ class Game extends ChangeNotifier {
     var selectedQA =
         questionsAndAnswers[random.nextInt(questionsAndAnswers.length)];
 
-    void closeDialog() {
+    void closeDialog() { 
       if (Navigator.canPop(context)) {
         Navigator.of(context).pop();
       }
     }
 
-    await showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
+        await showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return Scaffold(
+        resizeToAvoidBottomInset: false,
+        body: AlertDialog(
           title: Center(child: Text("Enter Your Answer")),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text(selectedQA['question']!),
-              TextField(controller: textEditingController),
-              SizedBox(height: 20),
-              CountdownTimerDisplay(
-                  initialTime: 5, onTimerComplete: closeDialog),
-            ],
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Text(selectedQA['question']!),
+                TextField(controller: textEditingController),
+                SizedBox(height: 20),
+                CountdownTimerDisplay(
+                    initialTime: 5, onTimerComplete: closeDialog),
+              ],
+            ),
           ),
           actions: <Widget>[
             Center(
@@ -231,7 +237,8 @@ class Game extends ChangeNotifier {
               ),
             ),
           ],
-        );
+        ),
+      );
       },
     );
   }
