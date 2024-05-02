@@ -68,7 +68,28 @@ class Mine extends StatelessWidget {
   }
 }
 
-class MainMenu extends StatelessWidget {
+class MainMenu extends StatefulWidget {
+  @override
+  _MainMenuState createState() => _MainMenuState();
+}
+
+class _MainMenuState extends State<MainMenu> {
+  Future<List<Map<String, dynamic>>>? profileListFuture;
+  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
+      GlobalKey<RefreshIndicatorState>();
+
+  @override
+  void initState() {
+    super.initState();
+    profileListFuture = getProfiles();
+  }
+
+  void refreshProfiles() {
+    setState(() {
+      profileListFuture = getProfiles();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -76,7 +97,8 @@ class MainMenu extends StatelessWidget {
         title: Text("Select Profile"),
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: getProfiles(),
+        key: ValueKey(profileListFuture),
+        future: profileListFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
@@ -106,7 +128,47 @@ class MainMenu extends StatelessWidget {
           }
         },
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showAddProfileDialog(context),
+        child: Icon(Icons.add),
+        backgroundColor: Colors.blue,
+      ),
     );
+  }
+
+  void _showAddProfileDialog(BuildContext context) {
+    TextEditingController nameController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Create New Profile"),
+          content: TextField(
+            controller: nameController,
+            decoration: InputDecoration(hintText: "Enter profile name"),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _addProfileToDb(nameController.text)
+                    .then((_) => refreshProfiles());
+              },
+              child: Text('Enter'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _addProfileToDb(String name) async {
+    final db = await mongo.Db.create(
+        'mongodb+srv://ronaldchomnou:Ronaldinho2910@cluster0.39ac5k2.mongodb.net/nextbigthing?retryWrites=true&w=majority&appName=Cluster0');
+    await db.open();
+    var collection = db.collection('MineBomb');
+    await collection.insert({'name': name, 'wallet': 5000});
+    db.close();
   }
 }
 
@@ -121,13 +183,12 @@ class StartGame extends StatefulWidget {
 }
 
 class _StartGameState extends State<StartGame> {
-  int selectedMines = 1; // Default number of mines
+  int selectedMines = 1;
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) =>
-          Game(context,selectedMines), // Pass the initial number of mines here
+      create: (context) => Game(context, selectedMines),
       child: Scaffold(
         appBar: AppBar(
           title: Text("Game - ${widget.profileName}"),
@@ -158,8 +219,7 @@ class _StartGameState extends State<StartGame> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: game.isTileClicked[index]
-                              ? game.tilesWithMines[
-                                      index] // Checking if there's a mine
+                              ? game.tilesWithMines[index]
                                   ? Icon(Icons.whatshot,
                                       size: 70, color: Colors.red)
                                   : Icon(Icons.monetization_on,

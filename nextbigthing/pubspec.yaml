@@ -33,6 +33,7 @@ dependencies:
   mongo_dart: ^0.10.0
   animated_flip_card: ^1.0.2
   provider: ^6.1.2
+  audioplayers: ^5.0.0
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -60,6 +61,10 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  assets:
+    - assets/coins.mp3
+    - assets/losing.mp3
+  
 
   # To add assets to your application, add an assets section, like this:
   # assets:

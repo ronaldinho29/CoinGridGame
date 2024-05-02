@@ -3,10 +3,11 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:mongo_dart/mongo_dart.dart' as mongo;
-import 'package:flutter/material.dart'; // Import the material package for using dialogs
+import 'package:flutter/material.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class Game extends ChangeNotifier {
-  final BuildContext context; // Add a context field
+  final BuildContext context;
   final int numberOfTiles = 30;
   int numberOfMines;
   List<bool> tilesWithMines;
@@ -43,7 +44,7 @@ class Game extends ChangeNotifier {
   }
 
   void resetGame() {
-    _placeMines(); // Re-place the mines
+    _placeMines();
     isTileClicked.fillRange(0, numberOfTiles, false);
     gameOver = false;
     gameStarted = false;
@@ -52,18 +53,20 @@ class Game extends ChangeNotifier {
   }
 
   void tapTile(int index) {
+    SoundManager soundManager = SoundManager();
     if (!gameStarted || gameOver || isTileClicked[index]) return;
 
+    soundManager.playSound("coins.mp3");
     HapticFeedback.lightImpact();
 
     isTileClicked[index] = true;
     if (tilesWithMines[index]) {
+      soundManager.playSound("losing.mp3");
       HapticFeedback.heavyImpact();
       gameOver = true;
       userWon = false;
       gameStarted = false;
-      _showMineHitDialog(); // Show the dialog when a mine is hit
-      // Directly trigger endGame without waiting for an external call
+      _showMineHitDialog();
     } else {
       int remainingSafeTiles = 0;
       for (int i = 0; i < numberOfTiles; i++) {
@@ -80,7 +83,6 @@ class Game extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Now endGame accepts userName and change explicitly for external calls
   void endGame(String userName, int selectedMines) {
     updateWallet(userName, selectedMines);
   }
@@ -109,8 +111,8 @@ class Game extends ChangeNotifier {
 
   void updateMines(int newMines) {
     numberOfMines = newMines;
-    _placeMines(); // Re-place the mines with the new number
-    isTileClicked.fillRange(0, numberOfTiles, false); // Reset clicks
+    _placeMines();
+    isTileClicked.fillRange(0, numberOfTiles, false);
     gameOver = false;
     gameStarted = false;
     userWon = false;
@@ -125,21 +127,19 @@ class Game extends ChangeNotifier {
       var result =
           await collection.findOne(mongo.where.eq('name', profileName));
       if (result != null && result.containsKey('wallet')) {
-        return result['wallet']
-            .toString(); // Ensure the wallet field is converted to a string
+        return result['wallet'].toString();
       } else {
         throw Exception("Wallet not found for user $profileName");
       }
     } catch (e) {
       print('Error fetching wallet: $e');
-      throw Exception(
-          "Failed to fetch wallet: $e"); // Re-throw the exception to be handled by caller
+      throw Exception("Failed to fetch wallet: $e");
     } finally {
       await db.close();
     }
   }
 
- void _showMineHitDialog() async {
+  void _showMineHitDialog() async {
     await showDialog(
       context: context,
       barrierDismissible: false,
@@ -167,8 +167,6 @@ class Game extends ChangeNotifier {
     );
   }
 
-
-
   final List<Map<String, String>> questionsAndAnswers = [
     {'question': 'What is 5 + 5?', 'answer': '10'},
     {'question': 'What is the capital of France?', 'answer': 'Paris'},
@@ -195,50 +193,50 @@ class Game extends ChangeNotifier {
     var selectedQA =
         questionsAndAnswers[random.nextInt(questionsAndAnswers.length)];
 
-    void closeDialog() { 
+    void closeDialog() {
       if (Navigator.canPop(context)) {
         Navigator.of(context).pop();
       }
     }
 
-        await showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (BuildContext context) {
-      return Scaffold(
-        resizeToAvoidBottomInset: false,
-        body: AlertDialog(
-          title: Center(child: Text("Enter Your Answer")),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text(selectedQA['question']!),
-                TextField(controller: textEditingController),
-                SizedBox(height: 20),
-                CountdownTimerDisplay(
-                    initialTime: 5, onTimerComplete: closeDialog),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            Center(
-              child: TextButton(
-                child: Text("Submit"),
-                onPressed: () {
-                  if (textEditingController.text.trim().toLowerCase() ==
-                      selectedQA['answer']!.toLowerCase()) {
-                    closeDialog();
-                    resetGame();
-                  } else {
-                    closeDialog();
-                  }
-                },
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Scaffold(
+          resizeToAvoidBottomInset: false,
+          body: AlertDialog(
+            title: Center(child: Text("Enter Your Answer")),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Text(selectedQA['question']!),
+                  TextField(controller: textEditingController),
+                  SizedBox(height: 20),
+                  CountdownTimerDisplay(
+                      initialTime: 5, onTimerComplete: closeDialog),
+                ],
               ),
             ),
-          ],
-        ),
-      );
+            actions: <Widget>[
+              Center(
+                child: TextButton(
+                  child: Text("Submit"),
+                  onPressed: () {
+                    if (textEditingController.text.trim().toLowerCase() ==
+                        selectedQA['answer']!.toLowerCase()) {
+                      closeDialog();
+                      resetGame();
+                    } else {
+                      closeDialog();
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
       },
     );
   }
@@ -286,5 +284,13 @@ class _CountdownTimerDisplayState extends State<CountdownTimerDisplay> {
   @override
   Widget build(BuildContext context) {
     return Text('Time left: $remainingTime seconds');
+  }
+}
+
+class SoundManager {
+  final AudioPlayer _audioPlayer = AudioPlayer();
+
+  Future<void> playSound(String filePath) async {
+    await _audioPlayer.play(AssetSource(filePath));
   }
 }
