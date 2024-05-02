@@ -41,7 +41,6 @@ Future<List<Map<String, dynamic>>> getProfiles() async {
   db.close();
 
   return profiles.map((profile) {
-    // Directly convert Int64 to int without additional checks
     int wallet = (profile['wallet']).toInt();
     return {
       'name': profile['name'] as String,
