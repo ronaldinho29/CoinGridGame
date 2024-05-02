@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
       DeviceOrientation.portraitDown,
     ]);
     return MaterialApp(
-      title: 'Mine Game',
+      title: 'Coin Grid',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
@@ -56,7 +56,7 @@ class Mine extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
-          'Mine Game',
+          'Coin Grid',
           style: TextStyle(fontSize: 30),
         ),
         backgroundColor: Colors.blue,
