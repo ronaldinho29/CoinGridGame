@@ -109,7 +109,12 @@ class _MainMenuState extends State<MainMenu> {
               itemCount: profiles.length,
               itemBuilder: (context, index) {
                 return ListTile(
-                  leading: Icon(Icons.person),
+                  leading: Icon(
+                    Icons.person,
+                    color: profiles[index]['wallet'] >= 10000
+                        ? Colors.yellow
+                        : null,
+                  ),
                   title: Text(profiles[index]['name']),
                   onTap: () {
                     Navigator.push(
