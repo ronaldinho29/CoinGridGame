@@ -1,6 +1,6 @@
 Coin Grid Game
 
-The Coin Grid Game is a simple and addictive game where players uncover tiles in a grid to find coins while avoiding mines.
+The Coin Grid Game is a simple game where players uncover tiles in a grid to find coins while avoiding mines.
 
 Features
 
