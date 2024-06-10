@@ -35,9 +35,5 @@ MongoDB:
 Purpose: Used for tracking user data, including creating new profiles and managing virtual balances.
 Details: Utilized MongoDB operations to store and update user profiles, track the amount of virtual money each profile has, and ensure data persistence across sessions.
 
-Version Control (Git):
-Purpose: Managed source code and MongoDB schema changes.
-Details: Enabled tracking code changes, ensuring data integrity, rolling back to previous versions, collaborating efficiently, branching for features, and tracking configuration changes.
-
 
 
